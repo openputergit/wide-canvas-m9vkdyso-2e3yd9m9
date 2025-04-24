@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPoint Academy - Learn Smarter, Track Faster</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --navy: #1C2A49;
+            --yellow: #FFE89D;
+            --green: #B8E986;
+        }
+
+        /* Claymorphism styles */
+        .clay {
+            background: #ffffff;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: 
+                0.5rem 0.5rem 1.5rem rgba(0, 0, 0, 0.1),
+                -0.5rem -0.5rem 1.5rem rgba(255, 255, 255, 0.8),
+                inset 0.2rem 0.2rem 0.5rem rgba(255, 255, 255, 0.4),
+                inset -0.2rem -0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+        
+        .clay-btn {
+            background: var(--yellow);
+            border-radius: 1.2rem;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0.3rem 0.3rem 0.8rem rgba(0, 0, 0, 0.15),
+                -0.3rem -0.3rem 0.8rem rgba(255, 255, 255, 0.7),
+                inset 0 0 0 rgba(255, 255, 255, 0.5),
+                inset 0 0 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .clay-btn:active {
+            box-shadow: 
+                0 0 0 rgba(0, 0, 0, 0.15),
+                0 0 0 rgba(255, 255, 255, 0.7),
+                inset 0.3rem 0.3rem 0.8rem rgba(0, 0, 0, 0.15),
+                inset -0.3rem -0.3rem 0.8rem rgba(255, 255, 255, 0.7);
+        }
+
+        .clay-green {
+            background: var(--green);
+        }
+
+        .clay-white {
+            background: #ffffff;
+        }
+
+        .clay-navy {
+            background: var(--navy);
+            color: white;
+            box-shadow: 
+                0.5rem 0.5rem 1.5rem rgba(0, 0, 0, 0.2),
+                inset 0.2rem 0.2rem 0.5rem rgba(255, 255, 255, 0.1),
+                inset -0.2rem -0.2rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-bar {
+            transition: width 1s ease-in-out;
+            border-radius: 1rem;
+        }
+
+        .chat-bubble {
+            position: relative;
+            border-radius: 1.5rem;
+        }
+
+        .chat-bubble::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-right: 15px solid var(--yellow);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid var(--yellow);
+            color: var(--navy);
+            font-weight: 600;
+        }
+
+        @keyframes slide-up {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-slide-up {
+            animation: slide-up 0.5s ease forwards;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .streak-badge {
+            background: linear-gradient(135deg, var(--yellow), var(--green));
+            color: var(--navy);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--navy);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-['Inter'] bg-gray-50">
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="bg-[#1C2A49] text-white p-4 sticky top-0 z-50">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-['DM_Sans'] font-bold">EduPoint Academy</h1>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#home" class="hover:text-[#FFE89D]">Home</a>
+                    <a href="#courses" class="hover:text-[#FFE89D]">Courses</a>
+                    <a href="#dashboard" class="hover:text-[#FFE89D]">Dashboard</a>
+                    <a href="#ai-solver" class="hover:text-[#FFE89D]">AI Solver</a>
+                </div>
+                <button @click="toggleMobileMenu" class="md:hidden">
+                    <i class="bi bi-list text-2xl"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div v-if="showMobileMenu" class="md:hidden bg-[#1C2A49] text-white p-4 animate-slide-up">
+            <div class="flex flex-col space-y-4">
+                <a href="#home" class="hover:text-[#FFE89D]" @click="showMobileMenu = false">Home</a>
+                <a href="#courses" class="hover:text-[#FFE89D]" @click="showMobileMenu = false">Courses</a>
+                <a href="#dashboard" class="hover:text-[#FFE89D]" @click="showMobileMenu = false">Dashboard</a>
+                <a href="#ai-solver" class="hover:text-[#FFE89D]" @click="showMobileMenu = false">AI Solver</a>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section id="home" class="container mx-auto px-4 py-16">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-4xl md:text-6xl font-['DM_Sans'] font-bold mb-6">
+                    Learn Smarter, Track Faster, Grow Every Day
+                </h1>
+                <p class="text-xl mb-8">Coaching for Class 6–12 | JEE | NEET | Olympiads</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button @click="showDemoForm = true" class="clay clay-btn bg-[#FFE89D] px-6 py-3 text-lg font-bold">
+                        Book Free Demo Class
+                    </button>
+                    <button @click="showLoginModal = true" class="clay clay-btn clay-green px-6 py-3 text-lg font-bold">
+                        Access Dashboard
+                    </button>
+                    <button @click="scrollToAISolver" class="clay clay-btn clay-white px-6 py-3 text-lg font-bold">
+                        Ask a Doubt 🤖
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Courses Section -->
+        <section id="courses" class="container mx-auto px-4 py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-3xl font-['DM_Sans'] font-bold mb-10 text-center">
+                    Our Specialized Courses
+                </h2>
+                
+                <!-- Course Tabs -->
+                <div class="flex flex-wrap justify-center mb-8">
+                    <button 
+                        v-for="(tab, index) in courseTabs" 
+                        :key="index" 
+                        @click="activeTab = index"
+                        :class="['px-4 py-2 mx-1 mb-2', activeTab === index ? 'tab-active' : '']">
+                        {{ tab }}
+                    </button>
+                </div>
+                
+                <!-- Course Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="(course, i) in filteredCourses" :key="i" class="clay">
+                        <div class="flex items-center justify-center mb-4 h-12">
+                            <i :class="['bi text-3xl text-[#1C2A49]', course.icon]"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2 text-center">{{ course.title }}</h3>
+                        <p class="text-gray-600 text-center mb-4">{{ course.description }}</p>
+                        <div class="text-center">
+                            <p class="text-gray-800 font-bold mb-4">{{ course.price }}</p>
+                            <button @click="showDemoForm = true" class="clay clay-btn clay-green w-full">
+                                Book Demo Class
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Student Dashboard -->
+        <section id="dashboard" class="container mx-auto px-4 py-16">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-3xl font-['DM_Sans'] font-bold mb-4 text-center">
+                    Student Dashboard
+                </h2>
+                <p class="text-center mb-10">Track your progress and manage your studies efficiently</p>
+                
+                <div class="clay mb-8">
+                    <div class="flex flex-col md:flex-row justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold mb-2">Welcome back, Student!</h3>
+                            <p class="mb-4">
+                                <span class="streak-badge">🔥 {{ loginStreak }} Day Streak</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <button @click="showLoginModal = true" class="clay clay-btn clay-green px-6 py-2">
+                                Login to Access
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Today's Class -->
+                    <div class="clay">
+                        <h3 class="text-lg font-bold mb-3">Today's Class</h3>
+                        <p class="text-gray-700 mb-2">
+                            <i class="bi bi-calendar-check mr-2"></i>
+                            Physics: Wave Motion
+                        </p>
+                        <p class="text-gray-700 mb-2">
+                            <i class="bi bi-clock mr-2"></i>
+                            5:00 PM - 6:30 PM
+                        </p>
+                        <p class="text-gray-700">
+                            <i class="bi bi-person-video3 mr-2"></i>
+                            Teacher: Ms. Sharma
+                        </p>
+                    </div>
+                    
+                    <!-- Homework Due -->
+                    <div class="clay">
+                        <h3 class="text-lg font-bold mb-3">Homework Due</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">Physics: Problem Set 8</p>
+                                    <p class="text-sm text-gray-500">Due: Today</p>
+                                </div>
+                                <input type="checkbox" class="h-5 w-5">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">Chemistry: Organic Compounds</p>
+                                    <p class="text-sm text-gray-500">Due: Tomorrow</p>
+                                </div>
+                                <input type="checkbox" class="h-5 w-5">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance -->
+                    <div class="clay">
+                        <h3 class="text-lg font-bold mb-3">Attendance</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <p class="text-lg">This Week</p>
+                            <p class="font-bold text-lg">85%</p>
+                        </div>
+                        <div class="h-3 bg-gray-200 rounded-full">
+                            <div class="h-3 bg-[#B8E986] rounded-full" style="width: 85%"></div>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <button class="clay clay-btn text-sm">Check Full Report</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="clay">
+                        <h3 class="text-lg font-bold mb-3">Subject Progress</h3>
+                        <canvas id="subjectChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="clay">
+                        <h3 class="text-lg font-bold mb-3">Weekly Performance</h3>
+                        <canvas id="weeklyChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Doubt Solver -->
+        <section id="ai-solver" class="container mx-auto px-4 py-16 bg-gray-50">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="animate-pulse h-12 w-12 bg-[#FFE89D] rounded-full flex items-center justify-center mr-2">
+                        <i class="bi bi-robot text-2xl text-[#1C2A49]"></i>
+                    </div>
+                    <h2 class="text-3xl font-['DM_Sans'] font-bold">
+                        AI Doubt Solver
+                    </h2>
+                </div>
+                <p class="text-center mb-8">Get instant answers to all your academic questions</p>
+                
+                <div class="clay">
+                    <div class="mb-4">
+                        <select v-model="selectedSubject" class="w-full p-3 clay mb-4">
+                            <option value="">Select Subject</option>
+                            <option value="math">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="physics">Physics</option>
+                            <option value="chemistry">Chemistry</option>
+                            <option value="biology">Biology</option>
+                            <option value="english">English</option>
+                        </select>
+                        <textarea v-model="doubt" 
+                                 @keyup.enter="askDoubt"
+                                 class="w-full p-3 clay h-32 resize-none"
+                                 placeholder="Type your doubt here... (Example: How does photosynthesis work?)"></textarea>
+                    </div>
+                    <button @click="askDoubt" 
+                            class="clay clay-btn bg-[#FFE89D] px-6 py-3 w-full font-bold flex items-center justify-center">
+                        <i class="bi bi-send-fill mr-2"></i> Get Answer
+                    </button>
+                </div>
+
+                <!-- AI Response -->
+                <div v-if="aiResponse || isLoading" class="mt-6 animate-slide-up">
+                    <div class="clay bg-[#FFE89D]">
+                        <div class="flex justify-between mb-4 items-center">
+                            <div class="flex items-center">
+                                <i class="bi bi-robot-fill mr-2 text-lg"></i>
+                                <span class="font-bold">AI Response:</span>
+                            </div>
+                            <div class="flex items-center">
+                                <button @click="saveToLibrary" class="mr-3 hover:opacity-75" title="Save to Library">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                                <button @click="speakAnswer" class="hover:opacity-75" title="Listen to Answer">
+                                    <i class="bi bi-volume-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isLoading" class="flex justify-center items-center py-6">
+                            <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#1C2A49]"></div>
+                        </div>
+                        
+                        <p v-else class="mb-4 leading-relaxed whitespace-pre-line">{{ aiResponse }}</p>
+                        
+                        <div v-if="!isLoading" class="flex justify-end gap-2 mt-4">
+                            <button @click="rateAnswer(true)" class="clay clay-btn px-3 py-1" title="This was helpful">👍</button>
+                            <button @click="rateAnswer(false)" class="clay clay-btn px-3 py-1" title="This wasn't helpful">👎</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weekly Quiz Section -->
+        <section class="container mx-auto px-4 py-16">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-['DM_Sans'] font-bold mb-4 text-center">
+                    Weekly Quiz & Worksheet
+                </h2>
+                <p class="text-center mb-8">Every Sunday, new worksheets are available for practice</p>
+                
+                <div class="clay mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-lg">Physics: Waves and Oscillations</h3>
+                            <p class="text-gray-600">Released: May 7, 2023</p>
+                        </div>
+                        <div class="flex gap-2 mt-4 md:mt-0">
+                            <button class="clay clay-btn clay-green">
+                                <i class="bi bi-download mr-1"></i> Download
+                            </button>
+                            <button class="clay clay-btn" @click="showSubmitModal = true">
+                                <i class="bi bi-upload mr-1"></i> Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clay mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-lg">Mathematics: Integration</h3>
+                            <p class="text-gray-600">Released: April 30, 2023</p>
+                        </div>
+                        <div class="flex gap-2 mt-4 md:mt-0">
+                            <button class="clay clay-btn clay-green">
+                                <i class="bi bi-download mr-1"></i> Download
+                            </button>
+                            <button class="clay clay-btn bg-gray-200" disabled>
+                                <i class="bi bi-check-circle-fill mr-1 text-green-500"></i> Submitted
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button class="clay clay-btn clay-green px-6 py-3">
+                        View All Worksheets
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Parent View -->
+        <section class="container mx-auto px-4 py-16 bg-gray-50">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-['DM_Sans'] font-bold mb-4 text-center">
+                    Parent Dashboard
+                </h2>
+                <p class="text-center mb-8">Stay updated with your child's academic progress</p>
+                
+                <div class="clay">
+                    <h3 class="text-lg font-bold mb-4">Student: Rahul Sharma</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <h4 class="font-medium mb-1">Attendance</h4>
+                            <p class="text-2xl font-bold text-[#1C2A49]">92%</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <h4 class="font-medium mb-1">Last Test</h4>
+                            <p class="text-2xl font-bold text-[#1C2A49]">85/100</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <h4 class="font-medium mb-1">Homework</h4>
+                            <p class="text-2xl font-bold text-[#1C2A49]">9/10</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button class="clay clay-btn clay-green flex items-center">
+                            <i class="bi bi-whatsapp mr-2"></i>
+                            Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Testimonials -->
+        <section class="container mx-auto px-4 py-16">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-['DM_Sans'] font-bold mb-4 text-center">
+                    Student Success Stories
+                </h2>
+                <p class="text-center mb-8">Hear from our students who achieved their academic goals with us</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="clay">
+                        <div class="flex items-center mb-4">
+                            <div class="h-12 w-12 rounded-full bg-[#1C2A49] flex items-center justify-center text-white font-bold text-lg mr-3">
+                                AS
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Amit Singh</h4>
+                                <p class="text-sm">JEE Advanced: 99.2 percentile</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"The structured approach and AI doubt solver helped me prepare efficiently. Teachers were always supportive and the weekly tests kept me on track."</p>
+                    </div>
+                    
+                    <div class="clay">
+                        <div class="flex items-center mb-4">
+                            <div class="h-12 w-12 rounded-full bg-[#1C2A49] flex items-center justify-center text-white font-bold text-lg mr-3">
+                                PR
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Priya Rao</h4>
+                                <p class="text-sm">NEET: 645/720</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"The progress tracking system helped me identify my weak areas. The AI doubt solver was available 24/7 which made a huge difference during my preparation."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo Class Form Modal -->
+        <div v-if="showDemoForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="clay bg-white p-6 max-w-md w-full animate-slide-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold">Book Demo Class</h3>
+                    <button @click="showDemoForm = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <form @submit.prevent="submitDemoForm">
+                    <input type="text" v-model="demoForm.name" placeholder="Student Name" class="w-full p-3 mb-4 clay">
+                    <select v-model="demoForm.class" class="w-full p-3 mb-4 clay">
+                        <option value="">Select Class</option>
+                        <option v-for="n in 7" :key="n" :value="n+5">Class {{n+5}}</option>
+                    </select>
+                    <select v-model="demoForm.subject" class="w-full p-3 mb-4 clay">
+                        <option value="">Select Subject</option>
+                        <option value="math">Mathematics</option>
+                        <option value="physics">Physics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="biology">Biology</option>
+                        <option value="english">English</option>
+                    </select>
+                    <input type="datetime-local" v-model="demoForm.time" class="w-full p-3 mb-4 clay">
+                    <div class="flex justify-end gap-4">
+                        <button type="button" @click="showDemoForm = false" class="clay clay-btn bg-gray-200 px-6 py-2">
+                            Cancel
+                        </button>
+                        <button type="submit" class="clay clay-btn clay-green px-6 py-2 font-bold">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="clay bg-white p-6 max-w-md w-full animate-slide-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold">Log In</h3>
+                    <button @click="showLoginModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <form @submit.prevent="login">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Username/Email</label>
+                        <input type="text" v-model="loginForm.email" placeholder="Enter your email" class="w-full p-3 clay">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" v-model="loginForm.password" placeholder="Enter your password" class="w-full p-3 clay">
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="text-[#1C2A49] hover:underline">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="clay clay-btn clay-green w-full py-3 font-bold">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Submit Quiz Modal -->
+        <div v-if="showSubmitModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="clay bg-white p-6 max-w-md w-full animate-slide-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold">Submit Your Quiz</h3>
+                    <button @click="showSubmitModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <form @submit.prevent="submitQuiz">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Upload Your Solution</label>
+                        <div class="border-2 border-dashed border-gray-300 p-6 text-center">
+                            <i class="bi bi-cloud-arrow-up text-4xl text-gray-400"></i>
+                            <p class="mt-2">Drag & drop your file or</p>
+                            <button type="button" class="clay clay-btn mt-2">Browse Files</button>
+                            <input type="file" class="hidden">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Comments (Optional)</label>
+                        <textarea class="w-full p-3 clay" rows="3" placeholder="Any comments for your teacher..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-4">
+                        <button type="button" @click="showSubmitModal = false" class="clay clay-btn bg-gray-200 px-6 py-2">
+                            Cancel
+                        </button>
+                        <button type="submit" class="clay clay-btn clay-green px-6 py-2 font-bold">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sticky Mobile CTA -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex justify-around md:hidden">
+            <button @click="openWhatsApp" class="flex flex-col items-center">
+                <i class="bi bi-whatsapp text-2xl text-green-500"></i>
+                <span class="text-sm">Chat</span>
+            </button>
+            <button @click="scrollToAISolver" class="flex flex-col items-center">
+                <i class="bi bi-robot text-2xl text-blue-500"></i>
+                <span class="text-sm">AI Help</span>
+            </button>
+            <button @click="showDemoForm = true" class="flex flex-col items-center">
+                <i class="bi bi-calendar-check text-2xl text-purple-500"></i>
+                <span class="text-sm">Book Demo</span>
+            </button>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="bg-[#1C2A49] text-white py-10">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">EduPoint Academy</h3>
+                        <p class="mb-4">Learn Smarter, Track Faster, Grow Every Day.</p>
+                        <div class="flex space-x-4">
+                            <a href="#" class="hover:text-[#FFE89D]"><i class="bi bi-facebook"></i></a>
+                            <a href="#" class="hover:text-[#FFE89D]"><i class="bi bi-instagram"></i></a>
+                            <a href="#" class="hover:text-[#FFE89D]"><i class="bi bi-youtube"></i></a>
+                            <a href="#" class="hover:text-[#FFE89D]"><i class="bi bi-twitter"></i></a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#courses" class="hover:text-[#FFE89D]">Courses</a></li>
+                            <li><a href="#dashboard" class="hover:text-[#FFE89D]">Dashboard</a></li>
+                            <li><a href="#ai-solver" class="hover:text-[#FFE89D]">AI Solver</a></li>
+                            <li><a href="#" class="hover:text-[#FFE89D]">Quiz</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                        <ul class="space-y-2">
+                            <li><i class="bi bi-geo-alt mr-2"></i> 123 Education St, Knowledge City</li>
+                            <li><i class="bi bi-telephone mr-2"></i> +91 98765 43210</li>
+                            <li><i class="bi bi-envelope mr-2"></i> info@edupoint.com</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Subscribe</h3>
+                        <p class="mb-2">Get the latest updates and news</p>
+                        <div class="flex">
+                            <input type="email" placeholder="Your email" class="p-2 w-full rounded-l-md">
+                            <button class="bg-[#B8E986] text-[#1C2A49] px-4 rounded-r-md">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
+                    <p>Designed with 💖 as part of the 30 Days Website Challenge by Auriva Solutions</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    showMobileMenu: false,
+                    showDemoForm: false,
+                    showLoginModal: false,
+                    showSubmitModal: false,
+                    selectedSubject: '',
+                    doubt: '',
+                    aiResponse: '',
+                    isLoading: false,
+                    demoForm: {
+                        name: '',
+                        class: '',
+                        subject: '',
+                        time: ''
+                    },
+                    loginForm: {
+                        email: '',
+                        password: ''
+                    },
+                    loginStreak: 15,
+                    activeTab: 0,
+                    courseTabs: [
+                        'Class 6-8',
+                        'Class 9-10',
+                        'Class 11-12',
+                        'Entrance Prep'
+                    ],
+                    courses: [
+                        {
+                            tab: 0,
+                            title: 'Mathematics Foundation',
+                            description: 'Build strong foundations in basic mathematics',
+                            price: '₹3,999/month',
+                            icon: 'bi-calculator'
+                        },
+                        {
+                            tab: 0,
+                            title: 'Science Explorer',
+                            description: 'Hands-on approach to learning science concepts',
+                            price: '₹4,499/month',
+                            icon: 'bi-lightbulb'
+                        },
+                        {
+                            tab: 0,
+                            title: 'English Mastery',
+                            description: 'Improve vocabulary, grammar and communication',
+                            price: '₹3,499/month',
+                            icon: 'bi-book'
+                        },
+                        {
+                            tab: 1,
+                            title: 'Advanced Mathematics',
+                            description: 'Ace algebra, geometry and statistics',
+                            price: '₹4,999/month',
+                            icon: 'bi-graph-up'
+                        },
+                        {
+                            tab: 1,
+                            title: 'Physics & Chemistry',
+                            description: 'Comprehensive course for physical sciences',
+                            price: '₹5,499/month',
+                            icon: 'bi-atom'
+                        },
+                        {
+                            tab: 1,
+                            title: 'Biology Explorer',
+                            description: 'Detailed study of living organisms and systems',
+                            price: '₹4,999/month',
+                            icon: 'bi-heart-pulse'
+                        },
+                        {
+                            tab: 2,
+                            title: 'Physics Advanced',
+                            description: 'In-depth study of mechanics, waves and more',
+                            price: '₹6,999/month',
+                            icon: 'bi-lightning'
+                        },
+                        {
+                            tab: 2,
+                            title: 'Chemistry Complete',
+                            description: 'Organic, inorganic and physical chemistry',
+                            price: '₹6,999/month',
+                            icon: 'bi-flask'
+                        },
+                        {
+                            tab: 2,
+                            title: 'Mathematics Elite',
+                            description: 'Calculus, trigonometry and coordinate geometry',
+                            price: '₹6,999/month',
+                            icon: 'bi-infinity'
+                        },
+                        {
+                            tab: 3,
+                            title: 'JEE Complete Preparation',
+                            description: 'Comprehensive course covering all JEE subjects',
+                            price: '₹15,999/month',
+                            icon: 'bi-trophy'
+                        },
+                        {
+                            tab: 3,
+                            title: 'NEET Intensive',
+                            description: 'Biology, Physics and Chemistry for medical entrance',
+                            price: '₹14,999/month',
+                            icon: 'bi-heart-pulse'
+                        },
+                        {
+                            tab: 3,
+                            title: 'Olympiad Training',
+                            description: 'Special training for various academic olympiads',
+                            price: '₹8,999/month',
+                            icon: 'bi-award'
+                        }
+                    ]
+                }
+            },
+            computed: {
+                filteredCourses() {
+                    return this.courses.filter(course => course.tab === this.activeTab)
+                }
+            },
+            methods: {
+                toggleMobileMenu() {
+                    this.showMobileMenu = !this.showMobileMenu
+                },
+                async askDoubt() {
+                    if (!this.doubt) return
+
+                    // Show loading state
+                    this.isLoading = true
+                    this.aiResponse = ''
+
+                    try {
+                        const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/ai', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer se5lnAQHotcAw6Vd74R8zy17lUQ2',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                messages: [{
+                                    role: 'user',
+                                    content: [{
+                                        type: 'text',
+                                        text: `Subject: ${this.selectedSubject || 'General'}\nQuestion: ${this.doubt}`
+                                    }]
+                                }]
+                            })
+                        })
+
+                        const data = await response.json()
+                        this.aiResponse = data.message
+                    } catch (error) {
+                        this.aiResponse = 'Sorry, I encountered an error. Please try again.'
+                        console.error('Error:', error)
+                    } finally {
+                        this.isLoading = false
+                    }
+                },
+                speakAnswer() {
+                    if ('speechSynthesis' in window && this.aiResponse) {
+                        const utterance = new SpeechSynthesisUtterance(this.aiResponse)
+                        speechSynthesis.speak(utterance)
+                    }
+                },
+                rateAnswer(isHelpful) {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    })
+                    
+                    // Here you would typically send the feedback to your backend
+                    alert(isHelpful ? "Thank you for the positive feedback!" : "We'll improve our answers. Thanks for the feedback!")
+                },
+                saveToLibrary() {
+                    alert("Answer saved to your personal doubt library!")
+                },
+                submitDemoForm() {
+                    // Here you would typically send the form data to your backend
+                    if (!this.demoForm.name || !this.demoForm.class || !this.demoForm.subject || !this.demoForm.time) {
+                        alert("Please fill all the required fields")
+                        return
+                    }
+                    
+                    console.log('Demo form submitted:', this.demoForm)
+                    this.showDemoForm = false
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    })
+                    
+                    setTimeout(() => {
+                        alert("Demo class booked successfully! We'll contact you soon.")
+                    }, 300)
+                },
+                login() {
+                    // Here you would typically authenticate the user
+                    if (!this.loginForm.email || !this.loginForm.password) {
+                        alert("Please enter both email and password")
+                        return
+                    }
+                    
+                    console.log('Login attempted:', this.loginForm)
+                    this.showLoginModal = false
+                    
+                    setTimeout(() => {
+                        alert("Login successful! Welcome back.")
+                    }, 300)
+                },
+                submitQuiz() {
+                    // Here you would typically upload the quiz file
+                    this.showSubmitModal = false
+                    
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    })
+                    
+                    setTimeout(() => {
+                        alert("Quiz submitted successfully!")
+                    }, 300)
+                },
+                scrollToAISolver() {
+                    document.getElementById('ai-solver').scrollIntoView({ behavior: 'smooth' })
+                },
+                openWhatsApp() {
+                    window.open('https://wa.me/9876543210', '_blank')
+                },
+                initCharts() {
+                    // Subject progress chart
+                    const subjectCtx = document.getElementById('subjectChart').getContext('2d')
+                    new Chart(subjectCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English'],
+                            datasets: [{
+                                label: 'Progress',
+                                data: [78, 65, 90, 82, 95],
+                                backgroundColor: [
+                                    '#FFE89D',
+                                    '#B8E986',
+                                    '#1C2A49',
+                                    '#FFE89D',
+                                    '#B8E986'
+                                ],
+                                borderWidth: 0,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    })
+                    
+                    // Weekly performance chart
+                    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d')
+                    new Chart(weeklyCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                            datasets: [{
+                                label: 'Quiz Scores',
+                                data: [65, 72, 78, 85],
+                                borderColor: '#1C2A49',
+                                backgroundColor: 'rgba(28, 42, 73, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    })
+                }
+            },
+            mounted() {
+                // Initialize charts once the component is mounted
+                this.$nextTick(() => {
+                    this.initCharts()
+                })
+            }
+        }).mount('#app')
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
